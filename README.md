@@ -1,2 +1,3 @@
-# aristore
+# Aristore
+
 An e-commerce store
