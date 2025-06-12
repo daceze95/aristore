@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { decryptPassword, hashPassword } from "../utils";
+import { decryptPassword, signToken, hashPassword } from "../utils";
+import { AuthRequest } from "../interface";
 
-const USER_DATABASE: { fullName: string; email: string; password: string }[] =
+export const USER_DATABASE: { fullName: string; email: string; password: string }[] =
   [];
 
 export const userHealthController = (req: Request, res: Response) => {
@@ -52,18 +53,20 @@ export const login = async (req: Request, res: Response) => {
         existingUser.password
       );
       if (verifyPassword) {
-        res.status(200).json({ message: "User login successful" });
+        const { password, ...others } = existingUser;
+        const token = signToken(others);
+        res.status(200).json({ message: "User login successful", token });
       } else {
         res
           .status(400)
           .json({ message: "Invalid password or email. Please try again." });
       }
     } else {
-        res.status(400).json({
-            status: "failed",
-            message: "NOT FOUND",
-            error: "user not found"
-        })
+      res.status(400).json({
+        status: "failed",
+        message: "NOT FOUND",
+        error: "user not found",
+      });
     }
   } catch (error) {
     res.status(500).json({
@@ -72,4 +75,14 @@ export const login = async (req: Request, res: Response) => {
       error,
     });
   }
+};
+
+export const getInventory = (req: AuthRequest, res: Response) => {
+  res.status(200).json({
+    inventory: {
+      shirt: 100,
+      shoe: 10,
+      pants: 20
+    },
+  });
 };
