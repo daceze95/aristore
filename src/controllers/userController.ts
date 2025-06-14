@@ -1,6 +1,7 @@
+///* <reference types="../types/express" />*/
+
 import { Request, Response } from "express";
 import { decryptPassword, signToken, hashPassword } from "../utils";
-import { AuthRequest } from "../interface";
 
 export const USER_DATABASE: { fullName: string; email: string; password: string }[] =
   [];
@@ -77,12 +78,15 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getInventory = (req: AuthRequest, res: Response) => {
+export const getInventory = (req: Request, res: Response) => {
+  const {email, fullName} = req.user!;
+
   res.status(200).json({
     inventory: {
       shirt: 100,
       shoe: 10,
-      pants: 20
+      pants: 20,
+      user: {email, fullName}
     },
   });
 };

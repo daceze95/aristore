@@ -1,3 +1,5 @@
+import "./types/global-types" // just once, anywhere globally
+
 import express from 'express';
 import 'dotenv/config';
 import { API_VERSION, port } from './config/appConfig';

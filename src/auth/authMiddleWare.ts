@@ -1,45 +1,53 @@
 import { NextFunction, Request, Response } from "express";
 import { verifyJwt } from "../utils";
 import { JwtPayload } from "jsonwebtoken";
-import { USER_DATABASE } from "../controllers/userController";
-import { AuthRequest } from "../interface";
+// import { USER_DATABASE } from "../controllers/userController";
 
-interface Payload extends JwtPayload { fullName: string; email: string}
+interface Payload extends JwtPayload {
+  fullName: string;
+  email: string;
+}
 
-const authMiddleWare= (req: AuthRequest, res: Response, next: NextFunction) => {
-  const token = req.headers["authorization"]?.slice(7);
+const authMiddleWare = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers["authorization"];
 
-  if (!token) {
+  if (!authHeader) {
     res.status(401).json({
-      status: "error",
-      message: "You're not authorized to perform this action!",
-      error: "Unauthorized!",
+      message: "No token provided",
     });
   }
 
   try {
-    const verifiedToken = verifyJwt(token as string) as Payload;
+    const token = authHeader?.split(" ")[1];
 
-    const existingUser = USER_DATABASE.find(
-      (user) => user.email === verifiedToken.email
-    );
-
-    if (!existingUser) {
-      res.status(404).json({
-        status: "error",
-        message: "User doesn't exist.",
-        error: "User not found!",
+    if (!token) {
+      res.status(401).json({
+        message: "Invalid token format",
       });
     }
 
-    req.user = verifiedToken;
+    const decoded = verifyJwt(token!) as Payload;
+
+    // do this for sensitive actions. No DB checks for basic routes
+    // const existingUser = USER_DATABASE.find(
+    //   (user) => user.email === decoded.email
+    // );
+
+    // if (!existingUser) {
+    //   res.status(404).json({
+    //     status: "error",
+    //     message: "User doesn't exist.",
+    //     error: "User not found!",
+    //   });
+    // }
+
+    req.user = decoded;
 
     next();
   } catch (error: any) {
     res.status(401).json({
       status: "error",
-      message: "Invalid token! Outer error",
-      details: error.message,
+      message: "Expired or invalid token!",
     });
   }
 };
