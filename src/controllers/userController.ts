@@ -2,9 +2,10 @@
 
 import { Request, Response } from "express";
 import { decryptPassword, signToken, hashPassword } from "../utils";
+import { UserDB } from "../interface";
+import { getDB, saveDB } from "../utils/db";
 
-export const USER_DATABASE: { fullName: string; email: string; password: string }[] =
-  [];
+export const USER_DATABASE:UserDB[] = [];
 
 export const userHealthController = (req: Request, res: Response) => {
   try {
@@ -25,7 +26,10 @@ export const signup = async (req: Request, res: Response) => {
     email: req.body.email as string,
   };
 
-  USER_DATABASE.push(newUser);
+  const userData = getDB();
+
+  userData.push(newUser);
+  saveDB(userData);
 
   try {
     res.status(201).json({
@@ -46,7 +50,8 @@ export const login = async (req: Request, res: Response) => {
   //TODO: verify user input
 
   try {
-    const existingUser = USER_DATABASE.find((user) => user.email === email);
+    
+    const existingUser = getDB().find((user) => user.email === email);
 
     if (existingUser && email === existingUser.email) {
       const verifyPassword = await decryptPassword(
@@ -78,15 +83,11 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getInventory = (req: Request, res: Response) => {
-  const {email, fullName} = req.user!;
+export const getAllUsers = (req: Request, res: Response) => {
+  const users = getDB().map((data) => data);
 
   res.status(200).json({
-    inventory: {
-      shirt: 100,
-      shoe: 10,
-      pants: 20,
-      user: {email, fullName}
-    },
+    users,
+    count: users.length,
   });
 };

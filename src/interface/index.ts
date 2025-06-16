@@ -6,3 +6,9 @@ export interface AuthRequest extends Request {
     fullName: string;
   };
 }
+
+export interface UserDB {
+  fullName: string;
+  email: string;
+  password: string;
+}
